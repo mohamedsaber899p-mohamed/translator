@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المترجم الشامل VIP</title>
+    <!-- مكتبة التعرّف على النصوص واستخراج الإحداثيات من الصور -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #6d28d9;
+            --bg-gradient: linear-gradient(135deg, #2e1065, #581c87, #7e22ce, #a855f7);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --border-color: #ddd6fe;
+            --radius-main: 24px;
+            --radius-elem: 14px;
+            --font-size: 16px;
+            --anim-speed: 10s;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 15px;
+            background: var(--bg-gradient);
+            background-size: 400% 400% !important;
+            animation: gradientMove var(--anim-speed) ease infinite !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.5s ease;
+        }
+
+        /* الثيمات الـ 20 */
+        body.theme-purple { --bg-gradient: linear-gradient(135deg, #2e1065, #581c87, #7e22ce, #a855f7, #c084fc); --primary: #a855f7; --primary-dark: #6b21a8; --card-bg: rgba(46, 16, 101, 0.92); --text-main: #faf5ff; --text-sub: #e9d5ff; --border-color: #581c87; }
+        body.theme-aurora { --bg-gradient: linear-gradient(135deg, #051923, #003554, #006494, #0582ca, #00a6fb); --primary: #00a6fb; --primary-dark: #006494; --card-bg: rgba(5, 25, 35, 0.92); --text-main: #f0f8ff; --text-sub: #b0c4de; --border-color: #003554; }
+        body.theme-cyberpunk { --bg-gradient: linear-gradient(135deg, #2b0938, #ff007f, #00f0ff, #110022); --primary: #ff007f; --primary-dark: #d6006b; --card-bg: rgba(17, 0, 34, 0.92); --text-main: #ffffff; --text-sub: #00f0ff; --border-color: #ff007f; }
+        body.theme-sunset { --bg-gradient: linear-gradient(135deg, #2d112c, #530031, #820038, #cd403a, #e28835); --primary: #cd403a; --primary-dark: #820038; --card-bg: rgba(45, 17, 44, 0.92); --text-main: #fff0f5; --text-sub: #e28835; --border-color: #530031; }
+        body.theme-emerald { --bg-gradient: linear-gradient(135deg, #062c20, #0c4a34, #10b981, #047857); --primary: #10b981; --primary-dark: #047857; --card-bg: rgba(6, 44, 32, 0.92); --text-main: #ecfdf5; --text-sub: #a7f3d0; --border-color: #0c4a34; }
+        body.theme-ocean { --bg-gradient: linear-gradient(135deg, #0a1128, #1c2541, #3a506b, #0077b6); --primary: #0077b6; --primary-dark: #1c2541; --card-bg: rgba(10, 17, 40, 0.92); --text-main: #e0f2fe; --text-sub: #90e0ef; --border-color: #3a506b; }
+        body.theme-lava { --bg-gradient: linear-gradient(135deg, #1f0000, #4a0000, #990000, #ff4500, #ff8c00); --primary: #ff4500; --primary-dark: #990000; --card-bg: rgba(31, 0, 0, 0.92); --text-main: #fff5f0; --text-sub: #ff8c00; --border-color: #4a0000; }
+        body.theme-galaxy { --bg-gradient: linear-gradient(135deg, #0d0221, #0f084b, #26408b, #a2007c); --primary: #a2007c; --primary-dark: #26408b; --card-bg: rgba(13, 2, 33, 0.92); --text-main: #f3e8ff; --text-sub: #c084fc; --border-color: #0f084b; }
+        body.theme-candy { --bg-gradient: linear-gradient(135deg, #4c1d95, #831843, #be185d, #4338ca); --primary: #ec4899; --primary-dark: #be185d; --card-bg: rgba(255, 255, 255, 0.95); --text-main: #0f172a; --text-sub: #475569; --border-color: #fbcfe8; }
+        body.theme-gold { --bg-gradient: linear-gradient(135deg, #291d03, #78350f, #b45309, #f59e0b, #fbbf24); --primary: #f59e0b; --primary-dark: #b45309; --card-bg: rgba(41, 29, 3, 0.92); --text-main: #fffbeb; --text-sub: #fde68a; --border-color: #78350f; }
+        body.theme-cherry { --bg-gradient: linear-gradient(135deg, #4c0519, #881337, #be123c, #fb7185, #fda4af); --primary: #fb7185; --primary-dark: #be123c; --card-bg: rgba(76, 5, 25, 0.92); --text-main: #fff1f2; --text-sub: #fecdd3; --border-color: #881337; }
+        body.theme-forest { --bg-gradient: linear-gradient(135deg, #022c22, #064e3b, #047857, #10b981, #34d399); --primary: #34d399; --primary-dark: #047857; --card-bg: rgba(2, 44, 34, 0.92); --text-main: #f0fdf4; --text-sub: #a7f3d0; --border-color: #064e3b; }
+        body.theme-neon-blue { --bg-gradient: linear-gradient(135deg, #030712, #0f172a, #2563eb, #06b6d4, #10b981); --primary: #06b6d4; --primary-dark: #2563eb; --card-bg: rgba(3, 7, 18, 0.92); --text-main: #f0fdfa; --text-sub: #67e8f9; --border-color: #0f172a; }
+        body.theme-dark { --bg-gradient: linear-gradient(135deg, #09090b, #18181b, #27272a, #3f3f46, #71717a); --primary: #a1a1aa; --primary-dark: #3f3f46; --card-bg: rgba(18, 18, 20, 0.94); --text-main: #f4f4f5; --text-sub: #a1a1aa; --border-color: #27272a; }
+        body.theme-pastel { --bg-gradient: linear-gradient(135deg, #312e81, #4338ca, #6366f1, #a5b4fc, #e0e7ff); --primary: #6366f1; --primary-dark: #4338ca; --card-bg: rgba(255, 255, 255, 0.95); --text-main: #0f172a; --text-sub: #475569; --border-color: #c7d2fe; }
+        body.theme-red { --bg-gradient: linear-gradient(135deg, #450a0a, #7f1d1d, #991b1b, #dc2626, #ef4444); --primary: #ef4444; --primary-dark: #991b1b; --card-bg: rgba(69, 10, 10, 0.92); --text-main: #fef2f2; --text-sub: #fca5a5; --border-color: #7f1d1d; }
+        body.theme-violet { --bg-gradient: linear-gradient(135deg, #3b0764, #6b21a8, #9333ea, #c084fc, #e9d5ff); --primary: #c084fc; --primary-dark: #7e22ce; --card-bg: rgba(59, 7, 100, 0.92); --text-main: #faf5ff; --text-sub: #e9d5ff; --border-color: #6b21a8; }
+        body.theme-aqua { --bg-gradient: linear-gradient(135deg, #083344, #155e75, #0891b2, #06b6d4, #22d3ee); --primary: #22d3ee; --primary-dark: #0891b2; --card-bg: rgba(8, 51, 68, 0.92); --text-main: #ecfeff; --text-sub: #67e8f9; --border-color: #155e75; }
+        body.theme-sunburst { --bg-gradient: linear-gradient(135deg, #451a03, #78350f, #d97706, #f59e0b, #fef08a); --primary: #f59e0b; --primary-dark: #d97706; --card-bg: rgba(69, 26, 3, 0.92); --text-main: #fffbeb; --text-sub: #fde047; --border-color: #78350f; }
+        body.theme-vaporwave { --bg-gradient: linear-gradient(135deg, #1e1b4b, #4338ca, #831843, #db2777, #06b6d4); --primary: #db2777; --primary-dark: #831843; --card-bg: rgba(30, 27, 75, 0.92); --text-main: #fdf2f8; --text-sub: #f472b6; --border-color: #4338ca; }
+
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius-main);
+            padding: 22px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .settings-btn {
+            background: #eeddff;
+            border: 2px solid #d8b4fe;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: transform 0.4s ease, background 0.3s;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(90deg) scale(1.08);
+            background: #e9d5ff;
+        }
+
+        .settings-btn svg {
+            fill: #2e1065;
+            width: 24px;
+            height: 24px;
+        }
+
+        .settings-panel {
+            display: none;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-elem);
+            padding: 16px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: var(--text-main);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .settings-panel.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .setting-title {
+            font-weight: 800;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .setting-select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            font-weight: bold;
+            cursor: pointer;
+            color: #0f172a;
+            max-width: 180px;
+        }
+
+        .btn-reset {
+            width: 100%;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .lang-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.04);
+            padding: 6px;
+            border-radius: var(--radius-elem);
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .lang-select {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e1b4b;
+            outline: none;
+            width: 42%;
+            text-align: center;
+        }
+
+        .swap-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-card {
+            background: white;
+            border-radius: var(--radius-elem);
+            border: 2px solid var(--border-color);
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        /* حاوية الصورة والترجمة المباشرة فوقها */
+        .img-wrapper {
+            position: relative;
+            width: 100%;
+            display: none;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px dashed var(--primary);
+        }
+
+        .image-preview {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        textarea {
+            width: 100%;
+            height: 95px;
+            border: none;
+            outline: none;
+            font-size: var(--font-size);
+            resize: none;
+            color: #0f172a;
+            background: transparent;
+        }
+
+        .tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .btn-tool {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-tool.mic-active {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-main {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: var(--radius-elem);
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .result-card {
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius-elem);
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .result-text {
+            font-size: var(--font-size);
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .history-section {
+            margin-top: 15px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+
+        .history-list {
+            max-height: 100px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            color: #0f172a;
+        }
+
+        #fileInput { display: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🌐 المترجم الشامل VIP</h1>
+            <button class="settings-btn" onclick="toggleSettings()" title="الإعدادات">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- لوحة الإعدادات الشاملة -->
+        <div class="settings-panel" id="settingsPanel">
+            <div class="setting-title">⚙️ إعدادات التطبيق والمظهر</div>
+
+            <div class="setting-row">
+                <span>🎨 المظهر المتحرك:</span>
+                <select id="themeSelect" class="setting-select" onchange="changeTheme(this.value)">
+                    <option value="purple">1. البنفسجي الملكي 💜</option>
+                    <option value="aurora">2. الشفق القطبي 🌌</option>
+                    <option value="cyberpunk">3. سايبر بانك ⚡</option>
+                    <option value="sunset">4. الغروب الساحر 🌅</option>
+                    <option value="emerald">5. الزمرد الملكي 💎</option>
+                    <option value="ocean">6. أعماق المحيط 🌊</option>
+                    <option value="lava">7. الحمم البركانية 🌋</option>
+                    <option value="galaxy">8. الفضاء والمجرة 🪐</option>
+                    <option value="candy">9. بوب نيون 🍬</option>
+                    <option value="gold">10. الذهب الملكي 🏆</option>
+                    <option value="cherry">11. زهر الكرز 🌸</option>
+                    <option value="forest">12. الغابة الساحرة 🌲</option>
+                    <option value="neon-blue">13. سايبر زرقاء 🌐</option>
+                    <option value="dark">14. الألمنيوم والأسود 🕶️</option>
+                    <option value="pastel">15. ألوان الباستيل ☁️</option>
+                    <option value="red">16. الوردة الحمراء 🌹</option>
+                    <option value="violet">17. البنفسجي الكهربائي ⚡</option>
+                    <option value="aqua">18. الأكوا والانتعاش 💧</option>
+                    <option value="sunburst">19. الشمس المشرقة ☀️</option>
+                    <option value="vaporwave">20. فيبوروايف الأسطوري 🦄</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <span>🔤 حجم الخط:</span>
+                <select id="fontSelect" class="setting-select" onchange="changeFontSize(this.value)">
+                    <option value="14px">صغير (14px)</option>
+                    <option value="16px" selected>متوسط (16px)</option>
+                    <option value="18px">كبير (18px)</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <span>⚡ سرعة حركة الخلفية:</span>
+                <select id="speedSelect" class="setting-select" onchange="changeAnimSpeed(this.value)">
+                    <option value="5s">سريعة جداً</option>
+                    <option value="10s" selected>عادية</option>
+                    <option value="20s">هادئة وبطيئة</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <span>🔊 سرعة النطق الصوتي:</span>
+                <select id="speechSpeedSelect" class="setting-select" onchange="changeSpeechRate(this.value)">
+                    <option value="0.8">بطيء</option>
+                    <option value="1" selected>طبيعي</option>
+                    <option value="1.2">سريع</option>
+                </select>
+            </div>
+
+            <button class="btn-reset" onclick="resetSettings()">🔄 إعادة ضبط الإعدادات</button>
+        </div>
+
+        <div class="lang-bar">
+            <select id="srcLang" class="lang-select">
+                <option value="auto">🔍 كشف تلقائي</option>
+                <option value="en" selected>الإنجليزيّة</option>
+                <option value="ar">العربية</option>
+                <option value="fr">الفرنسية</option>
+                <option value="de">الألمانية</option>
+                <option value="es">الإسبانية</option>
+            </select>
+
+            <button class="swap-btn" onclick="swapLanguages()">⇄</button>
+
+            <select id="tgtLang" class="lang-select">
+                <option value="ar" selected>العربية</option>
+                <option value="en">الإنجليزيّة</option>
+                <option value="fr">الفرنسية</option>
+                <option value="de">الألمانية</option>
+                <option value="es">الإسبانية</option>
+            </select>
+        </div>
+
+        <div class="input-card">
+            <!-- الحاوية المخصصة لعرض الترجمة فوق الصورة -->
+            <div class="img-wrapper" id="imgWrapper">
+                <img id="imgPreview" class="image-preview" alt="معاينة الصورة">
+                <div id="imageOverlay" class="image-overlay"></div>
+            </div>
+
+            <textarea id="inputText" placeholder="اكتب النص، تحدث بالصوت، أو ارفع صورة..."></textarea>
+
+            <div class="tools">
+                <label for="fileInput" class="btn-tool">📷 ترجمة صورة فوق النص</label>
+                <input type="file" id="fileInput" accept="image/*" onchange="processImage(event)">
+
+                <button class="btn-tool" id="micBtn" onclick="toggleSpeech()">🎙️ تحدث</button>
+                <button class="btn-tool" onclick="speakText('input')">🔊 نطق</button>
+                <button class="btn-tool" onclick="clearAll()">✕ مسح</button>
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="translateText()">ترجمة الآن ✨</button>
+
+        <div class="status" id="status"></div>
+
+        <div class="result-card" id="resultCard">
+            <div class="result-text" id="resultText"></div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-tool" onclick="speakText('result')">🔊 نطق الترجمة</button>
+                <button class="btn-tool" onclick="copyResult()">📋 نسخ النص</button>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <span>📜 آخر الترجمات المحفوظة:</span>
+                <span style="color:#ef4444; cursor:pointer;" onclick="clearHistory()">مسح السجل</span>
+            </div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isRecording = false;
+        let speechRate = 1;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isRecording = true;
+                toggleMicUI(true);
+            };
+
+            recognition.onresult = (e) => {
+                document.getElementById('inputText').value = e.results[0][0].transcript;
+                translateText();
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                toggleMicUI(false);
+                console.error("Speech Error:", event.error);
+                if (event.error === 'not-allowed') {
+                    alert("❌ تم رفض صلاحية الميكروفون! يرجى تفعيله من إعدادات المتصفح.");
+                } else if (event.error === 'network') {
+                    alert("❌ خدمة الصوت محتاجة اتصال بالإنترنت!");
+                }
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                toggleMicUI(false);
+            };
+        }
+
+        function toggleSpeech() {
+            if (!recognition) {
+                return alert("⚠️ متصفحك لا يدعم التعرف الصوتي. يرجى استخدام Google Chrome.");
+            }
+            if (isRecording) {
+                try { recognition.stop(); } catch(e) {}
+                isRecording = false;
+                toggleMicUI(false);
+            } else {
+                try {
+                    const srcLang = document.getElementById('srcLang').value;
+                    recognition.lang = srcLang === 'ar' ? 'ar-SA' : (srcLang === 'auto' ? 'ar-SA' : srcLang);
+                    recognition.start();
+                } catch (err) {
+                    if (err.name === 'InvalidStateError' || err.message.includes('already started')) {
+                        try { recognition.stop(); } catch(e) {}
+                        isRecording = false;
+                        toggleMicUI(false);
+                    } else {
+                        alert("❌ متعذر بدء التسجيل: " + err.message);
+                    }
+                }
+            }
+        }
+
+        function toggleMicUI(active) {
+            const btn = document.getElementById('micBtn');
+            if (btn) {
+                btn.className = active ? 'btn-tool mic-active' : 'btn-tool';
+                btn.innerText = active ? '🛑 استماع...' : '🎙️ تحدث';
+            }
+        }
+
+        // ================= 📷 معالجة الصورة والترجمة المباشرة فوقها =================
+        async function processImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const wrapper = document.getElementById('imgWrapper');
+            const preview = document.getElementById('imgPreview');
+            const overlay = document.getElementById('imageOverlay');
+            const status = document.getElementById('status');
+
+            overlay.innerHTML = ''; // مسح الترجمات السابقة
+            preview.src = URL.createObjectURL(file);
+            wrapper.style.display = 'block';
+
+            status.innerText = "⏳ جاري استخراج النص وتحديد مواقع الكلمات...";
+
+            preview.onload = async () => {
+                try {
+                    const worker = await Tesseract.createWorker('eng+ara');
+                    const ret = await worker.recognize(file);
+                    await worker.terminate();
+
+                    const lines = ret.data.lines;
+                    const validLines = lines.filter(l => l.text.trim().length > 0);
+
+                    if (validLines.length === 0) {
+                        status.innerText = "⚠️ لم يتم العثور على نص واضح في الصورة.";
+                        return;
+                    }
+
+                    status.innerText = "⚡ جاري ترجمة الكلمات ووضعها فوق الصورة...";
+
+                    // وضع كامل النص بالصندوق السفلي
+                    const fullText = validLines.map(l => l.text.trim()).join('\n');
+                    document.getElementById('inputText').value = fullText;
+
+                    const natW = preview.naturalWidth;
+                    const natH = preview.naturalHeight;
+                    const src = document.getElementById('srcLang').value;
+                    const tgt = document.getElementById('tgtLang').value;
+
+                    // ترجمة ورسم كل سطر بمكانه المخصص
+                    for (let line of validLines) {
+                        const lineText = line.text.trim();
+                        if (!lineText) continue;
+
+                        const translatedText = await fetchSingleTranslation(lineText, src, tgt);
+
+                        // حساب نسبة المكان والأبعاد مقارنة بحجم الصورة
+                        const bbox = line.bbox;
+                        const leftPct = (bbox.x0 / natW) * 100;
+                        const topPct = (bbox.y0 / natH) * 100;
+                        const widthPct = ((bbox.x1 - bbox.x0) / natW) * 100;
+                        const heightPct = ((bbox.y1 - bbox.y0) / natH) * 100;
+
+                        // إنشاء عنصر مربع الترجمة فوق الكتابة
+                        const box = document.createElement('div');
+                        box.style.position = 'absolute';
+                        box.style.left = leftPct + '%';
+                        box.style.top = topPct + '%';
+                        box.style.width = widthPct + '%';
+                        box.style.height = heightPct + '%';
+                        box.style.backgroundColor = 'rgba(255, 255, 255, 0.92)';
+                        box.style.color = '#000';
+                        box.style.border = '1px solid var(--primary)';
+                        box.style.borderRadius = '4px';
+                        box.style.display = 'flex';
+                        box.style.alignItems = 'center';
+                        box.style.justifyContent = 'center';
+                        box.style.textAlign = 'center';
+                        box.style.fontSize = '11px';
+                        box.style.fontWeight = 'bold';
+                        box.style.padding = '1px';
+                        box.style.boxSizing = 'border-box';
+                        box.style.overflow = 'hidden';
+                        box.style.wordBreak = 'break-word';
+                        box.innerText = translatedText;
+
+                        overlay.appendChild(box);
+                    }
+
+                    status.innerText = "✅ تمت الترجمة بنجاح فوق الصورة!";
+                    translateText(); // ترجمة النص الكامل في البطاقة السفلية أيضاً
+
+                } catch (err) {
+                    console.error(err);
+                    status.innerText = "❌ حدث خطأ في تحليل الصورة.";
+                }
+            };
+        }
+
+        async function fetchSingleTranslation(text, src, tgt) {
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${src}&tl=${tgt}&dt=t&q=${encodeURIComponent(text)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data && data[0]) {
+                    return data[0].map(i => i[0]).join('');
+                }
+            } catch (e) {}
+            return text;
+        }
+
+        async function translateText() {
+            const text = document.getElementById('inputText').value.trim();
+            const src = document.getElementById('srcLang').value;
+            const tgt = document.getElementById('tgtLang').value;
+            const status = document.getElementById('status');
+            const resultCard = document.getElementById('resultCard');
+            const resultText = document.getElementById('resultText');
+
+            if (!text) return;
+            status.innerText = "⚡ جاري الترجمة...";
+
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${src}&tl=${tgt}&dt=t&q=${encodeURIComponent(text)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data[0]) {
+                    let translated = data[0].map(i => i[0]).join('');
+                    resultText.innerText = translated;
+                    resultCard.style.display = 'block';
+                    status.innerText = "✅ تمت الترجمة بنجاح";
+                    saveToHistory(text, translated);
+                }
+            } catch (err) {
+                status.innerText = "❌ تعذر الاتصال، تأكد من وجود إنترنت!";
+            }
+        }
+
+        function swapLanguages() {
+            const s = document.getElementById('srcLang');
+            const t = document.getElementById('tgtLang');
+            if (s.value === 'auto') return;
+            const temp = s.value; s.value = t.value; t.value = temp;
+        }
+
+        function speakText(type) {
+            const text = type === 'result' ? document.getElementById('resultText').innerText : document.getElementById('inputText').value;
+            if (!text) return;
+            const lang = type === 'result' ? document.getElementById('tgtLang').value : document.getElementById('srcLang').value;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = lang === 'ar' ? 'ar-SA' : 'en-US';
+            u.rate = parseFloat(speechRate);
+            window.speechSynthesis.speak(u);
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('imgWrapper').style.display = 'none';
+            document.getElementById('imageOverlay').innerHTML = '';
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('status').innerText = '';
+        }
+
+        function copyResult() {
+            navigator.clipboard.writeText(document.getElementById('resultText').innerText);
+            alert("📋 تم النسخ بنجاح!");
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('active');
+        }
+
+        function changeTheme(themeName) {
+            document.body.className = '';
+            document.body.classList.add('theme-' + themeName);
+            localStorage.setItem('selected_theme', themeName);
+        }
+
+        function changeFontSize(size) {
+            document.documentElement.style.setProperty('--font-size', size);
+            localStorage.setItem('selected_font_size', size);
+        }
+
+        function changeAnimSpeed(speed) {
+            document.documentElement.style.setProperty('--anim-speed', speed);
+            localStorage.setItem('selected_anim_speed', speed);
+        }
+
+        function changeSpeechRate(rate) {
+            speechRate = rate;
+            localStorage.setItem('selected_speech_rate', rate);
+        }
+
+        function resetSettings() {
+            changeTheme('purple');
+            changeFontSize('16px');
+            changeAnimSpeed('10s');
+            changeSpeechRate('1');
+            document.getElementById('themeSelect').value = 'purple';
+            document.getElementById('fontSelect').value = '16px';
+            document.getElementById('speedSelect').value = '10s';
+            document.getElementById('speechSpeedSelect').value = '1';
+            alert("🔄 تم إعادة الضبط للإعدادات الافتراضية!");
+        }
+
+        function saveToHistory(original, translated) {
+            let history = JSON.parse(localStorage.getItem('app_history') || '[]');
+            history.unshift({ original, translated });
+            if (history.length > 5) history.pop();
+            localStorage.setItem('app_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            let history = JSON.parse(localStorage.getItem('app_history') || '[]');
+            list.innerHTML = '';
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `<span><strong>${item.original}</strong></span> ➔ <span>${item.translated}</span>`;
+                div.onclick = () => {
+                    document.getElementById('inputText').value = item.original;
+                    document.getElementById('resultText').innerText = item.translated;
+                    document.getElementById('resultCard').style.display = 'block';
+                };
+                list.appendChild(div);
+            });
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('app_history');
+            renderHistory();
+        }
+
+        const savedTheme = localStorage.getItem('selected_theme') || 'purple';
+        const savedFontSize = localStorage.getItem('selected_font_size') || '16px';
+        const savedAnimSpeed = localStorage.getItem('selected_anim_speed') || '10s';
+        const savedSpeechRate = localStorage.getItem('selected_speech_rate') || '1';
+
+        document.getElementById('themeSelect').value = savedTheme;
+        document.getElementById('fontSelect').value = savedFontSize;
+        document.getElementById('speedSelect').value = savedAnimSpeed;
+        document.getElementById('speechSpeedSelect').value = savedSpeechRate;
+
+        changeTheme(savedTheme);
+        changeFontSize(savedFontSize);
+        changeAnimSpeed(savedAnimSpeed);
+        changeSpeechRate(savedSpeechRate);
+
+        renderHistory();
+    </script>
+</body>
+</html>
